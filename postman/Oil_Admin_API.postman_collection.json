@@ -1,0 +1,619 @@
+{
+  "info": {
+    "_postman_id": "62c5f70c-7bda-4e45-969e-908287f8bb10",
+    "name": "Oil Admin API",
+    "description": "Delivery-ready Postman collection for the Oil Admin Laravel API. Import the Oil Admin Local environment, run Public/Countries, Public/States By Country Slug, Auth/Login - Test User, Catalog/Assets, and Catalog/Payment Methods to hydrate variables. Authenticated requests use Bearer {{auth_token}}. Financial operations require verified KYC and the relevant role permission. Transaction proof files are served through authenticated proof endpoints, not raw /storage paths.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{auth_token}}", "type": "string" }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Response is JSON when body is present', function () {",
+          "  if (pm.response.text()) pm.response.to.be.withBody;",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "api_base", "value": "{{base_url}}{{api_prefix}}" }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Settings",
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{api_base}}/settings" }
+        },
+        {
+          "name": "Send Contact Message",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Guest\",\n  \"email\": \"postman.guest@example.com\",\n  \"message\": \"I need help understanding how to use the platform.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/contact"
+          }
+        },
+        {
+          "name": "Countries",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const row = (body.data || []).find(item => item.slug === pm.environment.get('country_slug')) || (body.data || [])[0];",
+                  "if (row) pm.environment.set('country_id', row.id);"
+                ]
+              }
+            }
+          ],
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{api_base}}/countries" }
+        },
+        {
+          "name": "States By Country Slug",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if ((body.data || [])[0]) pm.environment.set('state_id', body.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": { "auth": { "type": "noauth" }, "method": "GET", "url": "{{api_base}}/countries/{{country_slug}}/states" }
+        },
+        {
+          "name": "States By Country ID",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{api_base}}/states?country_id={{country_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["states"],
+              "query": [{ "key": "country_id", "value": "{{country_id}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.token) pm.environment.set('auth_token', body.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{new_user_name}}\",\n  \"email\": \"{{new_user_email}}\",\n  \"phone\": \"+2348012345678\",\n  \"password\": \"{{new_user_password}}\",\n  \"password_confirmation\": \"{{new_user_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/register"
+          }
+        },
+        {
+          "name": "Login - Test User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Stores bearer token', function () {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.data.token).to.be.a('string');",
+                  "  pm.environment.set('auth_token', body.data.token);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/login"
+          }
+        },
+        {
+          "name": "Me",
+          "request": { "method": "GET", "url": "{{api_base}}/me" }
+        },
+        {
+          "name": "Dashboard",
+          "request": { "method": "GET", "url": "{{api_base}}/dashboard" }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/forgot-password"
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"token\": \"{{reset_token}}\",\n  \"password\": \"{{test_password}}\",\n  \"password_confirmation\": \"{{test_password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/reset-password"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": { "method": "POST", "url": "{{api_base}}/logout" }
+        }
+      ]
+    },
+    {
+      "name": "Profile And KYC",
+      "item": [
+        {
+          "name": "Profile",
+          "request": { "method": "GET", "url": "{{api_base}}/profile" }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country_id\": \"{{country_id}}\",\n  \"state_id\": \"{{state_id}}\",\n  \"address\": \"14 Marina Road, Lagos\",\n  \"gender\": \"female\",\n  \"date_of_birth\": \"1992-08-19\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/profile"
+          }
+        },
+        {
+          "name": "KYC Status",
+          "request": { "method": "GET", "url": "{{api_base}}/kyc/status" }
+        },
+        {
+          "name": "Submit KYC Documents",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "id_document_type", "value": "national_id", "type": "text" },
+                { "key": "id_document_front", "type": "file", "src": "database/seeders/files/ppa_Letter.pdf" },
+                { "key": "selfie_with_id", "type": "file", "src": "database/seeders/files/inbankimgtemplate1.jpg" },
+                { "key": "proof_of_address", "type": "file", "src": "database/seeders/files/ppa_Letter.pdf" }
+              ]
+            },
+            "url": "{{api_base}}/kyc/submit"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "Assets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "const bySymbol = symbol => rows.find(item => item.symbol === symbol);",
+                  "const usd = bySymbol('USD') || rows[0];",
+                  "const usdt = bySymbol('USDT') || rows[1] || rows[0];",
+                  "const target = bySymbol('SHELL') || bySymbol('DANGOTE') || rows[0];",
+                  "if (usd) pm.environment.set('usd_asset_id', usd.id);",
+                  "if (usdt) pm.environment.set('usdt_asset_id', usdt.id);",
+                  "if (target) pm.environment.set('target_asset_id', target.id);",
+                  "if (usd) pm.environment.set('asset_id', usd.id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/assets" }
+        },
+        {
+          "name": "Assets Filtered By Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_base}}/assets?type=crypto",
+              "host": ["{{api_base}}"],
+              "path": ["assets"],
+              "query": [{ "key": "type", "value": "crypto" }]
+            }
+          }
+        },
+        {
+          "name": "Asset Detail",
+          "request": { "method": "GET", "url": "{{api_base}}/assets/{{asset_id}}" }
+        },
+        {
+          "name": "Payment Methods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "const bank = rows.find(item => item.name === 'Bank Transfer') || rows[0];",
+                  "const crypto = rows.find(item => item.name === 'Cryptocurrency') || rows[1] || rows[0];",
+                  "if (bank) pm.environment.set('bank_method_id', bank.id);",
+                  "if (crypto) pm.environment.set('crypto_method_id', crypto.id);",
+                  "if (bank) pm.environment.set('method_id', bank.id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/methods" }
+        },
+        {
+          "name": "Bank Sub Methods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "const bank = rows[0];",
+                  "if (bank) pm.environment.set('bank_sub_method_id', bank.id);",
+                  "if (bank) pm.environment.set('sub_method_id', bank.id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/methods/{{bank_method_id}}/sub-methods" }
+        },
+        {
+          "name": "Crypto Sub Methods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "const trc20 = rows.find(item => item.network === 'TRC20') || rows[0];",
+                  "if (trc20) pm.environment.set('crypto_sub_method_id', trc20.id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/methods/{{crypto_method_id}}/sub-methods" }
+        },
+        {
+          "name": "Sub Method Detail",
+          "request": { "method": "GET", "url": "{{api_base}}/sub-methods/{{sub_method_id}}" }
+        }
+      ]
+    },
+    {
+      "name": "Balances Holdings Trades",
+      "item": [
+        {
+          "name": "Balances",
+          "request": { "method": "GET", "url": "{{api_base}}/balances" }
+        },
+        {
+          "name": "Balance Transactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "if (rows[0]) pm.environment.set('transaction_id', rows[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/balances/transactions" }
+        },
+        {
+          "name": "Holdings",
+          "request": { "method": "GET", "url": "{{api_base}}/holdings" }
+        },
+        {
+          "name": "Holding Detail",
+          "request": { "method": "GET", "url": "{{api_base}}/holdings/{{target_asset_id}}" }
+        },
+        {
+          "name": "Holding Trades",
+          "request": { "method": "GET", "url": "{{api_base}}/holdings/trades" }
+        },
+        {
+          "name": "Buy Asset",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_asset_id\": \"{{usd_asset_id}}\",\n  \"to_asset_id\": \"{{target_asset_id}}\",\n  \"amount\": 25\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/trades/buy"
+          }
+        },
+        {
+          "name": "Sell Asset",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from_asset_id\": \"{{target_asset_id}}\",\n  \"to_asset_id\": \"{{usd_asset_id}}\",\n  \"amount\": 0.1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/trades/sell"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deposits",
+      "item": [
+        {
+          "name": "List Deposits",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "if (rows[0]) {",
+                  "  pm.environment.set('deposit_id', rows[0].id);",
+                  "  if (rows[0].proof_url) pm.environment.set('deposit_proof_url', rows[0].proof_url);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/deposits" }
+        },
+        {
+          "name": "Create Deposit With Proof",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "asset_id", "value": "{{usd_asset_id}}", "type": "text" },
+                { "key": "sub_method_id", "value": "{{bank_sub_method_id}}", "type": "text" },
+                { "key": "amount", "value": "1500", "type": "text" },
+                { "key": "proof", "type": "file", "src": "database/seeders/files/inbankimgtemplate1.jpg" }
+              ]
+            },
+            "url": "{{api_base}}/deposits"
+          }
+        },
+        {
+          "name": "Deposit Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.proof_url) pm.environment.set('deposit_proof_url', body.data.proof_url);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/deposits/{{deposit_id}}" }
+        },
+        {
+          "name": "View Deposit Proof",
+          "request": {
+            "description": "Returns the authenticated user's deposit proof file as binary content when the deposit belongs to the current user. Use the proof_url returned on deposit resources when available.",
+            "method": "GET",
+            "url": "{{deposit_proof_url}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Withdrawals",
+      "item": [
+        {
+          "name": "List Withdrawals",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "if (rows[0]) {",
+                  "  pm.environment.set('withdrawal_id', rows[0].id);",
+                  "  if (rows[0].destination && rows[0].destination.proof_url) pm.environment.set('withdrawal_proof_url', rows[0].destination.proof_url);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/withdrawals" }
+        },
+        {
+          "name": "Create Bank Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset_id\": \"{{usd_asset_id}}\",\n  \"sub_method_id\": \"{{bank_sub_method_id}}\",\n  \"amount\": 50,\n  \"destination_type\": \"bank\",\n  \"account_name\": \"Ada Okafor\",\n  \"account_number\": \"0123456789\",\n  \"bank_name\": \"Oil Admin Test Bank\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/withdrawals"
+          }
+        },
+        {
+          "name": "Create Crypto Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asset_id\": \"{{usdt_asset_id}}\",\n  \"sub_method_id\": \"{{crypto_sub_method_id}}\",\n  \"amount\": 25,\n  \"destination_type\": \"crypto\",\n  \"wallet_address\": \"TPostmanWalletAddress1234567890\",\n  \"network\": \"TRC20\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{api_base}}/withdrawals"
+          }
+        },
+        {
+          "name": "Withdrawal Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.destination && body.data.destination.proof_url) pm.environment.set('withdrawal_proof_url', body.data.destination.proof_url);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/withdrawals/{{withdrawal_id}}" }
+        },
+        {
+          "name": "View Withdrawal Proof",
+          "request": {
+            "description": "Returns the authenticated user's withdrawal payout proof file as binary content when the withdrawal belongs to the current user. This endpoint is intentionally authenticated and should be used instead of guessing /storage paths.",
+            "method": "GET",
+            "url": "{{withdrawal_proof_url}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "List Transactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "if (rows[0]) pm.environment.set('transaction_id', rows[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/transactions" }
+        },
+        {
+          "name": "Filter Transactions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_base}}/transactions?type=deposit&direction=credit&status=completed",
+              "host": ["{{api_base}}"],
+              "path": ["transactions"],
+              "query": [
+                { "key": "type", "value": "deposit" },
+                { "key": "direction", "value": "credit" },
+                { "key": "status", "value": "completed" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transaction Detail",
+          "request": { "method": "GET", "url": "{{api_base}}/transactions/{{transaction_id}}" }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "if (rows[0]) pm.environment.set('notification_id', rows[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/notifications" }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": { "method": "POST", "url": "{{api_base}}/notifications/{{notification_id}}/read" }
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": { "method": "POST", "url": "{{api_base}}/notifications/read-all" }
+        }
+      ]
+    }
+  ]
+}
