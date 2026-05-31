@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             StateSeeder::class,
             MethodSeeder::class,
             SettingsSeeder::class,
-            TestDataSeeder::class,
+            // TestDataSeeder::class,
         ]);
     }
 }
