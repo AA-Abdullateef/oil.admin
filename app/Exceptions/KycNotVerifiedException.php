@@ -10,6 +10,7 @@ class KycNotVerifiedException extends Exception
     public function render(): JsonResponse
     {
         return response()->json([
+            'success' => false,
             'message' => $this->getMessage(),
             'error'   => 'KYC_NOT_VERIFIED',
             'kyc_url' => '/api/v1/kyc/submit',

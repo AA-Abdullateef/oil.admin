@@ -17,25 +17,27 @@ class TradeController extends Controller
     {
         $rows = $this->tradeService->buy($request->user(), $request->validated());
 
-        return response()->json([
-            'message' => 'Trade recorded successfully.',
-            'data' => [
+        return $this->success(
+            [
                 'debit' => new TransactionResource($rows['debit']),
                 'credit' => new TransactionResource($rows['credit']),
             ],
-        ], 201);
+            'Trade recorded successfully.',
+            201
+        );
     }
 
     public function sell(SellTradeRequest $request): JsonResponse
     {
         $rows = $this->tradeService->sell($request->user(), $request->validated());
 
-        return response()->json([
-            'message' => 'Trade recorded successfully.',
-            'data' => [
+        return $this->success(
+            [
                 'debit' => new TransactionResource($rows['debit']),
                 'credit' => new TransactionResource($rows['credit']),
             ],
-        ], 201);
+            'Trade recorded successfully.',
+            201
+        );
     }
 }

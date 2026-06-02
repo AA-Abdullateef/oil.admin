@@ -16,7 +16,7 @@ class LocationController extends Controller
             ->select('id', 'name', 'slug')
             ->get();
 
-        return response()->json(['data' => $countries]);
+        return $this->success($countries, 'Countries retrieved.');
     }
 
     public function states(Request $request): JsonResponse
@@ -30,7 +30,7 @@ class LocationController extends Controller
             ->select('id', 'name', 'slug', 'country_id')
             ->get();
 
-        return response()->json(['data' => $states]);
+        return $this->success($states, 'States retrieved.');
     }
 
     public function statesBySlug(string $countrySlug): JsonResponse
@@ -42,8 +42,7 @@ class LocationController extends Controller
             ->select('id', 'name', 'slug', 'country_id')
             ->get();
 
-        return response()->json([
-            'data' => $states,
+        return $this->success($states, 'States retrieved.', 200, [
             'country' => ['id' => $country->id, 'name' => $country->name],
         ]);
     }

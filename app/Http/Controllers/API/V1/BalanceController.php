@@ -14,20 +14,20 @@ class BalanceController extends Controller
 
     public function show(Request $request): JsonResponse
     {
-        return response()->json([
-            'data' => [
-                'balances' => $this->balanceService->getAllBalances($request->user())->map(fn (array $row) => [
-                    'asset' => [
-                        'id' => $row['asset']->id,
-                        'symbol' => $row['asset']->symbol,
-                        'name' => $row['asset']->name,
-                        'type' => $row['asset']->type,
-                    ],
-                    'quantity' => number_format((float) $row['quantity'], 8, '.', ''),
-                    'value' => number_format((float) $row['value'], 8, '.', ''),
-                ])->values(),
-            ],
-        ]);
+        return $this->success([
+            'balances' => $this->balanceService->getAllBalances($request->user())->map(fn (array $row) => [
+                'asset' => [
+                    'id' => $row['asset']->id,
+                    'symbol' => $row['asset']->symbol,
+                    'name' => $row['asset']->name,
+                    'type' => $row['asset']->type,
+                ],
+                'quantity' => number_format((float) $row['quantity'], 8, '.', ''),
+                'value' => number_format((float) $row['value'], 8, '.', ''),
+            ])->values(),
+        ],
+            'Balances retrieved.'
+        );
     }
 
     public function transactions(Request $request): JsonResponse
@@ -38,13 +38,17 @@ class BalanceController extends Controller
             ->latest()
             ->paginate(20);
 
-        return response()->json([
-            'data' => TransactionResource::collection($transactions),
-            'meta' => [
-                'current_page' => $transactions->currentPage(),
-                'last_page' => $transactions->lastPage(),
-                'total' => $transactions->total(),
-            ],
-        ]);
+        return $this->success(
+            TransactionResource::collection($transactions),
+            'Balance transactions retrieved.',
+            200,
+            [
+                'meta' => [
+                    'current_page' => $transactions->currentPage(),
+                    'last_page' => $transactions->lastPage(),
+                    'total' => $transactions->total(),
+                ],
+            ]
+        );
     }
 }

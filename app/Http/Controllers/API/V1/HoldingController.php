@@ -17,26 +17,27 @@ class HoldingController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        return response()->json([
-            'data' => $this->balanceService->getAllBalances($request->user())->map(fn (array $row) => [
+        return $this->success(
+            $this->balanceService->getAllBalances($request->user())->map(fn (array $row) => [
                 'asset' => new AssetResource($row['asset']),
                 'quantity' => number_format((float) $row['quantity'], 8, '.', ''),
                 'current_value' => number_format((float) $row['value'], 8, '.', ''),
             ])->values(),
-        ]);
+            'Holdings retrieved.'
+        );
     }
 
     public function show(Request $request, Asset $asset): JsonResponse
     {
         $quantity = $this->balanceService->getBalance($request->user(), $asset);
 
-        return response()->json([
-            'data' => [
-                'asset' => new AssetResource($asset),
-                'quantity' => number_format((float) $quantity, 8, '.', ''),
-                'current_value' => number_format((float) bcmul($quantity, (string) $asset->current_price, 8), 8, '.', ''),
-            ],
-        ]);
+        return $this->success([
+            'asset' => new AssetResource($asset),
+            'quantity' => number_format((float) $quantity, 8, '.', ''),
+            'current_value' => number_format((float) bcmul($quantity, (string) $asset->current_price, 8), 8, '.', ''),
+        ],
+            'Holding retrieved.'
+        );
     }
 
     public function trades(Request $request): JsonResponse
@@ -47,6 +48,6 @@ class HoldingController extends Controller
             ->latest()
             ->paginate(20);
 
-        return response()->json(['data' => TransactionResource::collection($transactions)]);
+        return $this->success(TransactionResource::collection($transactions), 'Holding trades retrieved.');
     }
 }

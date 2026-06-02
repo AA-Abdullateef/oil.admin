@@ -21,7 +21,7 @@ class DepositController extends Controller
             ->latest()
             ->paginate(15);
 
-        return response()->json(['data' => DepositResource::collection($deposits)]);
+        return $this->success(DepositResource::collection($deposits), 'Deposits retrieved.');
     }
 
     public function store(StoreDepositRequest $request): JsonResponse
@@ -34,16 +34,16 @@ class DepositController extends Controller
 
         $deposit = $this->depositService->initiate($request->user(), $data);
 
-        return response()->json([
-            'message' => 'Deposit submitted. Awaiting completion.',
-            'data' => new DepositResource($deposit),
-        ], 201);
+        return $this->success(new DepositResource($deposit), 'Deposit submitted. Awaiting completion.', 201);
     }
 
     public function show(Request $request, Deposit $deposit): JsonResponse
     {
         abort_if($deposit->user_id !== $request->user()->id, 403);
 
-        return response()->json(['data' => new DepositResource($deposit->load(['asset', 'method', 'subMethod', 'depositProof']))]);
+        return $this->success(
+            new DepositResource($deposit->load(['asset', 'method', 'subMethod', 'depositProof'])),
+            'Deposit retrieved.'
+        );
     }
 }

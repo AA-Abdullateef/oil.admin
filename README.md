@@ -106,7 +106,7 @@ All API routes are under:
 /api/v1
 ```
 
-Authentication uses Sanctum bearer tokens. Login returns `data.token`; pass it as:
+Authentication uses Sanctum bearer tokens. Login and register return `data.access_token`; pass it as:
 
 ```http
 Authorization: Bearer <token>

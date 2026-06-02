@@ -8,6 +8,7 @@ use App\Http\Requests\API\Auth\LoginRequest;
 use App\Http\Requests\API\Auth\RegisterRequest;
 use App\Http\Requests\API\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Roles\RoleManager;
 use Illuminate\Http\JsonResponse;
@@ -22,18 +23,18 @@ class AuthController extends Controller
     {
         $user = User::create($request->validated());
 
-        $role = \App\Models\Role::where('slug', RoleManager::USER)->first();
-        if ($role) $user->roles()->attach($role);
+        $role = Role::where('slug', RoleManager::USER)->first();
+        if ($role) {
+            $user->roles()->attach($role);
+        }
 
         $token = $user->createToken('api')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Registration successful.',
-            'data'    => [
-                'user'  => new UserResource($user->load('profile')),
-                'token' => $token,
-            ],
-        ], 201);
+        return $this->success([
+            'user' => new UserResource($user->load('profile')),
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ], 'Registration successful.', 201);
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -47,38 +48,35 @@ class AuthController extends Controller
         }
 
         if ($user->status !== 'active') {
-            return response()->json([
-                'message' => 'Your account has been suspended. Contact support.',
-            ], 403);
+            return $this->error('Your account has been suspended. Contact support.', 403);
         }
 
         // Revoke all previous tokens — enforce single active session
         $user->tokens()->delete();
         $token = $user->createToken('api')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Login successful.',
-            'data'    => [
-                'user'  => new UserResource($user->load('profile')),
-                'token' => $token,
-            ],
-        ]);
+        return $this->success([
+            'user' => new UserResource($user->load('profile')),
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ], 'Login successful.');
     }
 
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully.']);
+        return $this->success(null, 'Logged out successfully.');
     }
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json([
-            'data' => new UserResource(
+        return $this->success(
+            new UserResource(
                 $request->user()->load('profile', 'roles')
             ),
-        ]);
+            'Authenticated user retrieved.'
+        );
     }
 
     /**
@@ -89,14 +87,10 @@ class AuthController extends Controller
         $status = Password::sendResetLink($request->only('email'));
 
         if ($status !== Password::RESET_LINK_SENT) {
-            return response()->json([
-                'message' => 'Unable to send reset link. Please try again.',
-            ], 422);
+            return $this->error('Unable to send reset link. Please try again.', 422);
         }
 
-        return response()->json([
-            'message' => 'Password reset link sent to your email.',
-        ]);
+        return $this->success(null, 'Password reset link sent to your email.');
     }
 
     /**
@@ -115,17 +109,16 @@ class AuthController extends Controller
         );
 
         if ($status !== Password::PASSWORD_RESET) {
-            return response()->json([
-                'message' => match ($status) {
+            return $this->error(
+                match ($status) {
                     Password::INVALID_TOKEN => 'Invalid or expired reset token.',
-                    Password::INVALID_USER  => 'No account found with that email.',
-                    default                 => 'Password reset failed. Please try again.',
+                    Password::INVALID_USER => 'No account found with that email.',
+                    default => 'Password reset failed. Please try again.',
                 },
-            ], 422);
+                422
+            );
         }
 
-        return response()->json([
-            'message' => 'Password reset successfully. Please log in with your new password.',
-        ]);
+        return $this->success(null, 'Password reset successfully. Please log in with your new password.');
     }
 }

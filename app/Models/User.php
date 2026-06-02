@@ -18,10 +18,11 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, HasUuids, Notifiable, SoftDeletes;
 
     public $incrementing = false;
-    protected $keyType   = 'string';
+
+    protected $keyType = 'string';
 
     protected $fillable = [
-        'name', 'email', 'phone', 'password', 'status',
+        'first_name', 'last_name', 'name', 'email', 'phone', 'password', 'status',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -30,8 +31,39 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            'password' => 'hashed',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->first_name || $user->last_name) {
+                $user->name = trim("{$user->first_name} {$user->last_name}");
+            }
+        });
+    }
+
+    public function getFirstNameAttribute($value): ?string
+    {
+        if ($value) {
+            return $value;
+        }
+
+        $parts = preg_split('/\s+/', trim((string) ($this->attributes['name'] ?? '')), 2);
+
+        return $parts[0] ?? null;
+    }
+
+    public function getLastNameAttribute($value): ?string
+    {
+        if ($value) {
+            return $value;
+        }
+
+        $parts = preg_split('/\s+/', trim((string) ($this->attributes['name'] ?? '')), 2);
+
+        return $parts[1] ?? null;
     }
 
     // ── Relationships ───────────────────────────────────────────

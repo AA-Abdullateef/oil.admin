@@ -19,14 +19,15 @@ class ContactController extends Controller
             'user_agent' => $request->userAgent(),
         ]);
 
-        return response()->json([
-            'message' => 'Your message has been received. Our support team will respond as soon as possible.',
-            'data' => [
+        return $this->success(
+            [
                 'id' => $message->id,
                 'name' => $message->name,
                 'email' => $message->email,
                 'created_at' => $message->created_at->toIso8601String(),
             ],
-        ], 201);
+            'Your message has been received. Our support team will respond as soon as possible.',
+            201
+        );
     }
 }

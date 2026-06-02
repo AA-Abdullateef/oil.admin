@@ -12,20 +12,27 @@ class ProfileController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        $profile = $request->user()->profile()->with('country', 'state')->firstOrFail();
+        $profile = $request->user()->profile()->with('user', 'country', 'state')->firstOrFail();
 
-        return response()->json(['data' => new ProfileResource($profile)]);
+        return $this->success(new ProfileResource($profile), 'Profile retrieved.');
     }
 
     public function update(UpdateProfileRequest $request): JsonResponse
     {
         $profile = $request->user()->profile ?? $request->user()->profile()->create();
+        $validated = $request->validated();
+        $userData = collect($validated)->only(['first_name', 'last_name', 'email', 'phone'])->all();
+        $profileData = collect($validated)->except(['first_name', 'last_name', 'email', 'phone'])->all();
 
-        $profile->update($request->validated());
+        if ($userData !== []) {
+            $request->user()->update($userData);
+        }
 
-        return response()->json([
-            'message' => 'Profile updated.',
-            'data'    => new ProfileResource($profile->load('country', 'state')),
-        ]);
+        $profile->update($profileData);
+
+        return $this->success(
+            new ProfileResource($profile->load('user', 'country', 'state')),
+            'Profile updated.'
+        );
     }
 }

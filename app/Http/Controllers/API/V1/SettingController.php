@@ -17,8 +17,6 @@ class SettingController extends Controller
      */
     public function public(): JsonResponse
     {
-        return response()->json([
-            'data' => $this->settings->public(),
-        ]);
+        return $this->success($this->settings->public(), 'Settings retrieved.');
     }
 }

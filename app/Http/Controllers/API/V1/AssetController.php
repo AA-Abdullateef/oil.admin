@@ -17,13 +17,13 @@ class AssetController extends Controller
             ->orderBy('name')
             ->get();
 
-        return response()->json(['data' => AssetResource::collection($assets)]);
+        return $this->success(AssetResource::collection($assets), 'Assets retrieved.');
     }
 
     public function show(Asset $asset): JsonResponse
     {
         abort_if($asset->status !== Asset::STATUS_ACTIVE, 404);
 
-        return response()->json(['data' => new AssetResource($asset)]);
+        return $this->success(new AssetResource($asset), 'Asset retrieved.');
     }
 }

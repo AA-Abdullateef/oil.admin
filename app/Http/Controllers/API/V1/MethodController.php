@@ -13,9 +13,10 @@ class MethodController extends Controller
 {
     public function index(): JsonResponse
     {
-        return response()->json([
-            'data' => MethodResource::collection(Method::withCount('subMethods')->orderBy('name')->get()),
-        ]);
+        return $this->success(
+            MethodResource::collection(Method::withCount('subMethods')->orderBy('name')->get()),
+            'Payment methods retrieved.'
+        );
     }
 
     public function subMethods(Method $method): JsonResponse
@@ -25,17 +26,13 @@ class MethodController extends Controller
             ->orderBy('name')
             ->get();
 
-        return response()->json([
-            'data' => SubMethodResource::collection($subMethods),
-        ]);
+        return $this->success(SubMethodResource::collection($subMethods), 'Payment sub-methods retrieved.');
     }
 
     public function showSubMethod(SubMethod $subMethod): JsonResponse
     {
         abort_if(! $subMethod->is_active, 404);
 
-        return response()->json([
-            'data' => new SubMethodResource($subMethod->load('method')),
-        ]);
+        return $this->success(new SubMethodResource($subMethod->load('method')), 'Payment sub-method retrieved.');
     }
 }

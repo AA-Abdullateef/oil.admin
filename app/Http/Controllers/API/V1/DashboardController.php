@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TransactionResource;
+use App\Http\Resources\UserResource;
 use App\Models\Deposit;
 use App\Models\Transaction;
 use App\Models\Withdrawal;
@@ -33,51 +34,45 @@ class DashboardController extends Controller
         $monthlyCredits = $this->monthlyTransactionTotal($user->id, Transaction::DIRECTION_CREDIT);
         $monthlyDebits = $this->monthlyTransactionTotal($user->id, Transaction::DIRECTION_DEBIT);
 
-        return response()->json([
-            'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'status' => $user->status,
-                ],
-                'account' => [
-                    'kyc_status' => $user->profile?->kyc_status ?? 'pending',
-                    'profile_complete' => $this->profileIsComplete($user->profile),
-                    'can_transact' => $user->status === 'active' && $user->profile?->kyc_status === 'verified',
-                    'unread_notifications' => $user->unreadNotifications()->count(),
-                ],
-                'portfolio' => [
-                    'balances_count' => $balances->count(),
-                    'balances' => $balances->map(fn (array $row) => [
-                        'asset' => [
-                            'id' => $row['asset']->id,
-                            'symbol' => $row['asset']->symbol,
-                            'name' => $row['asset']->name,
-                            'type' => $row['asset']->type,
-                        ],
-                        'quantity' => $this->decimal($row['quantity']),
-                        'value' => $this->decimal($row['value']),
-                    ])->values(),
-                ],
-                'activity' => [
-                    'total_transactions' => $user->transactions()->count(),
-                    'monthly_credits' => $this->decimal($monthlyCredits),
-                    'monthly_debits' => $this->decimal($monthlyDebits),
-                    'pending_deposits' => $this->pendingSummary(Deposit::query(), $user->id),
-                    'pending_withdrawals' => $this->pendingSummary(Withdrawal::query(), $user->id),
-                    'recent_transactions' => TransactionResource::collection($recentTransactions),
-                ],
-                'limits' => [
-                    'min_deposit_amount' => $this->settings->get('min_deposit_amount', 10),
-                    'max_deposit_amount' => $this->settings->get('max_deposit_amount', 50000),
-                    'min_withdrawal_amount' => $this->settings->get('min_withdrawal_amount', 20),
-                    'max_withdrawal_amount' => $this->settings->get('max_withdrawal_amount', 20000),
-                ],
-                'next_actions' => $this->nextActions($user),
+        return $this->success([
+            'user' => new UserResource($user),
+            'account' => [
+                'kyc_status' => $user->profile?->kyc_status ?? 'pending',
+                'profile_complete' => $this->profileIsComplete($user->profile),
+                'can_transact' => $user->status === 'active' && $user->profile?->kyc_status === 'verified',
+                'unread_notifications' => $user->unreadNotifications()->count(),
             ],
-        ]);
+            'portfolio' => [
+                'balances_count' => $balances->count(),
+                'balances' => $balances->map(fn (array $row) => [
+                    'asset' => [
+                        'id' => $row['asset']->id,
+                        'symbol' => $row['asset']->symbol,
+                        'name' => $row['asset']->name,
+                        'type' => $row['asset']->type,
+                    ],
+                    'quantity' => $this->decimal($row['quantity']),
+                    'value' => $this->decimal($row['value']),
+                ])->values(),
+            ],
+            'activity' => [
+                'total_transactions' => $user->transactions()->count(),
+                'monthly_credits' => $this->decimal($monthlyCredits),
+                'monthly_debits' => $this->decimal($monthlyDebits),
+                'pending_deposits' => $this->pendingSummary(Deposit::query(), $user->id),
+                'pending_withdrawals' => $this->pendingSummary(Withdrawal::query(), $user->id),
+                'recent_transactions' => TransactionResource::collection($recentTransactions),
+            ],
+            'limits' => [
+                'min_deposit_amount' => $this->settings->get('min_deposit_amount', 10),
+                'max_deposit_amount' => $this->settings->get('max_deposit_amount', 50000),
+                'min_withdrawal_amount' => $this->settings->get('min_withdrawal_amount', 20),
+                'max_withdrawal_amount' => $this->settings->get('max_withdrawal_amount', 20000),
+            ],
+            'next_actions' => $this->nextActions($user),
+        ],
+            'Dashboard retrieved.'
+        );
     }
 
     private function monthlyTransactionTotal(string $userId, string $direction): string

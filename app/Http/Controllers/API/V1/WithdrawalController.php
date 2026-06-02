@@ -21,25 +21,23 @@ class WithdrawalController extends Controller
             ->latest()
             ->paginate(15);
 
-        return response()->json(['data' => WithdrawalResource::collection($withdrawals)]);
+        return $this->success(WithdrawalResource::collection($withdrawals), 'Withdrawals retrieved.');
     }
 
     public function store(StoreWithdrawalRequest $request): JsonResponse
     {
         $withdrawal = $this->withdrawalService->request($request->user(), $request->validated());
 
-        return response()->json([
-            'message' => 'Withdrawal request submitted. Pending approval.',
-            'data' => new WithdrawalResource($withdrawal),
-        ], 201);
+        return $this->success(new WithdrawalResource($withdrawal), 'Withdrawal request submitted. Pending approval.', 201);
     }
 
     public function show(Request $request, Withdrawal $withdrawal): JsonResponse
     {
         abort_if($withdrawal->user_id !== $request->user()->id, 403);
 
-        return response()->json([
-            'data' => new WithdrawalResource($withdrawal->load(['asset', 'method', 'subMethod', 'withdrawalProof'])),
-        ]);
+        return $this->success(
+            new WithdrawalResource($withdrawal->load(['asset', 'method', 'subMethod', 'withdrawalProof'])),
+            'Withdrawal retrieved.'
+        );
     }
 }
