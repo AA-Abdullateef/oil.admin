@@ -30,6 +30,7 @@
                     <th>User</th>
                     <th>Phone</th>
                     <th>Roles</th>
+                    <th>Email</th>
                     <th>Status</th>
                     <th>Joined</th>
                     <th></th>
@@ -51,6 +52,16 @@
                         </span>
                     @endforeach
                 </td>
+                <td>
+                    @if($user->email_verified_at)
+                        <span class="badge badge-active">Verified</span>
+                    @else
+                        <form method="POST" action="{{ route('admin.users.verify-email', $user) }}" onsubmit="return confirm('Verify this user email?');">
+                            @csrf
+                            <button class="btn btn-ghost btn-sm">Verify email</button>
+                        </form>
+                    @endif
+                </td>
                 <td><span class="badge badge-{{ $user->status }}">{{ $user->status }}</span></td>
                 <td class="td-muted">{{ $user->created_at->format('M d, Y') }}</td>
                 <td>
@@ -58,7 +69,7 @@
                 </td>
             </tr>
             @empty
-            <tr><td colspan="7" class="td-muted" style="text-align:center;padding:32px;">No users found.</td></tr>
+            <tr><td colspan="8" class="td-muted" style="text-align:center;padding:32px;">No users found.</td></tr>
             @endforelse
             </tbody>
         </table>

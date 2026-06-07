@@ -16,7 +16,9 @@ use App\Observers\AssetObserver;
 use App\Observers\UserObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->ensureWritableRuntimeDirectories();
+
         ResetPassword::createUrlUsing(function (User $user, string $token): string {
             $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
 
@@ -48,5 +52,29 @@ class AppServiceProvider extends ServiceProvider
         WithdrawalProof::observe(AuditObserver::class);
 
         Paginator::defaultView('admin.partials.pagination');
+    }
+
+    private function ensureWritableRuntimeDirectories(): void
+    {
+        $directories = [
+            storage_path('framework/cache/data'),
+            storage_path('framework/sessions'),
+            storage_path('framework/testing'),
+            storage_path('framework/views'),
+            storage_path('logs'),
+            base_path('bootstrap/cache'),
+        ];
+
+        foreach ($directories as $directory) {
+            File::ensureDirectoryExists($directory, 0775, true);
+
+            $probe = @tempnam($directory, 'probe');
+
+            if ($probe === false || realpath(dirname($probe)) !== realpath($directory)) {
+                throw new RuntimeException("Laravel runtime directory is not writable: {$directory}");
+            }
+
+            File::delete($probe);
+        }
     }
 }

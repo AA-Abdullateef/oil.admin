@@ -51,6 +51,27 @@ class UserController extends Controller
         return back()->with('success', 'User updated successfully.');
     }
 
+    public function verifyEmail(User $user): RedirectResponse
+    {
+        if ($user->email_verified_at) {
+            return back()->with('success', "{$user->email} is already verified.");
+        }
+
+        $verifiedAt = now();
+
+        $user->forceFill([
+            'email_verified_at' => $verifiedAt,
+        ])->save();
+
+        app(AuditLogService::class)->log('user_email_verified', $user, oldValues: [
+            'email_verified_at' => null,
+        ], newValues: [
+            'email_verified_at' => $verifiedAt->toISOString(),
+        ]);
+
+        return back()->with('success', "{$user->email} has been verified.");
+    }
+
     public function destroy(User $user): RedirectResponse
     {
         $user->delete();

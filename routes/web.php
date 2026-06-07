@@ -27,6 +27,7 @@ Route::prefix('admin')
         // Users
         Route::middleware('has_permission:manage_users')->group(function () {
             Route::resource('users', Admin\UserController::class)->except(['create', 'store', 'edit']);
+            Route::post('users/{user}/verify-email', [Admin\UserController::class, 'verifyEmail'])->name('users.verify-email');
             Route::post('users/{user}/assign-role', [Admin\UserController::class, 'assignRole'])->name('users.assign-role');
             Route::post('users/{user}/remove-role', [Admin\UserController::class, 'removeRole'])->name('users.remove-role');
         });

@@ -17,6 +17,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'status' => $this->status,
+            'email_verified' => (bool) $this->email_verified_at,
             'email_verified_at' => $this->email_verified_at,
             'profile' => new ProfileResource($this->whenLoaded('profile')),
             'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('slug')

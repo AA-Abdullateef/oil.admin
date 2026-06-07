@@ -129,6 +129,7 @@ Frontend handoff documentation is available at `docs/API_FRONTEND_HANDOFF.md`. I
 
 ## Admin Workflows
 
+- Admins with `manage_users` can verify a user's email from the Users list or user detail page. This sets `email_verified_at`; API user payloads expose both `email_verified` and `email_verified_at`.
 - Deposits start as `pending`; admins can complete or cancel them.
 - Withdrawals start as `pending`; admins can process them with payment evidence or cancel them with a reason.
 - Payment destinations are no longer platform settings. Admins manage destination details under Finance / Payment sub-methods. Top-level methods are seeded categories such as Bank Transfer and Cryptocurrency; sub-methods carry bank account, wallet, network, and instruction fields.

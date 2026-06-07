@@ -13,12 +13,19 @@
             <div class="detail-grid">
                 <div class="detail-item"><div class="detail-item-label">Full name</div><div class="detail-item-value">{{ $user->name }}</div></div>
                 <div class="detail-item"><div class="detail-item-label">Email</div><div class="detail-item-value">{{ $user->email }}</div></div>
+                <div class="detail-item"><div class="detail-item-label">Email status</div><div class="detail-item-value"><span class="badge badge-{{ $user->email_verified_at ? 'active' : 'pending' }}">{{ $user->email_verified_at ? 'verified' : 'unverified' }}</span></div></div>
                 <div class="detail-item"><div class="detail-item-label">Phone</div><div class="detail-item-value">{{ $user->phone ?? '-' }}</div></div>
                 <div class="detail-item"><div class="detail-item-label">KYC status</div><div class="detail-item-value"><span class="badge badge-{{ $user->profile?->kyc_status ?? 'pending' }}">{{ $user->profile?->kyc_status ?? 'pending' }}</span></div></div>
                 <div class="detail-item"><div class="detail-item-label">Country</div><div class="detail-item-value">{{ $user->profile?->country?->name ?? '-' }}</div></div>
                 <div class="detail-item"><div class="detail-item-label">State</div><div class="detail-item-value">{{ $user->profile?->state?->name ?? '-' }}</div></div>
             </div>
             <div class="divider"></div>
+            @unless($user->email_verified_at)
+                <form method="POST" action="{{ route('admin.users.verify-email', $user) }}" style="margin-bottom:12px;" onsubmit="return confirm('Verify this user email?');">
+                    @csrf
+                    <button class="btn btn-primary btn-sm">Verify email</button>
+                </form>
+            @endunless
             <form method="POST" action="{{ route('admin.users.update', $user) }}" class="flex gap-2 items-center">
                 @csrf @method('PUT')
                 <input type="hidden" name="name" value="{{ $user->name }}">
