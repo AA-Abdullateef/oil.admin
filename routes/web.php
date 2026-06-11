@@ -110,3 +110,13 @@ Route::prefix('admin')
             Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
         });
     });
+
+
+Route::get('/mail-test', function () {
+    Mail::raw('Mail is working.', function ($message) {
+        $message->to('adeyemoabdullateef94@gmail.com')
+            ->subject('Mail Test');
+    });
+
+    return 'Mail sent';
+});

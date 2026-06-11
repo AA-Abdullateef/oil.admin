@@ -98,124 +98,183 @@
       ]
     },
     {
-      "name": "Auth",
-      "item": [
-        {
-          "name": "Register",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const body = pm.response.json();",
-                  "if (body.data && body.data.access_token) pm.environment.set('auth_token', body.data.access_token);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"first_name\": \"{{new_user_first_name}}\",\n  \"last_name\": \"{{new_user_last_name}}\",\n  \"email\": \"{{new_user_email}}\",\n  \"phone\": \"+2348012345678\",\n  \"password\": \"{{new_user_password}}\",\n  \"password_confirmation\": \"{{new_user_password}}\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{api_base}}/register"
-          }
-        },
-        {
-          "name": "Login - Test User",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Stores bearer token', function () {",
-                  "  const body = pm.response.json();",
-                  "  pm.expect(body.data.access_token).to.be.a('string');",
-                  "  pm.environment.set('auth_token', body.data.access_token);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{api_base}}/login"
-          }
-        },
-        {
-          "name": "Me",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const body = pm.response.json();",
-                  "pm.test('User includes email verification fields', function () {",
-                  "  pm.expect(body.data).to.have.property('email_verified');",
-                  "  pm.expect(body.data).to.have.property('email_verified_at');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "description": "Returns the authenticated user. Admin email verification updates are reflected in email_verified and email_verified_at.",
-            "method": "GET",
-            "url": "{{api_base}}/me"
-          }
-        },
-        {
-          "name": "Dashboard",
-          "request": { "method": "GET", "url": "{{api_base}}/dashboard" }
-        },
-        {
-          "name": "Forgot Password",
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{test_email}}\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{api_base}}/forgot-password"
-          }
-        },
-        {
-          "name": "Reset Password",
-          "request": {
-            "auth": { "type": "noauth" },
-            "method": "POST",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"token\": \"{{reset_token}}\",\n  \"password\": \"{{test_password}}\",\n  \"password_confirmation\": \"{{test_password}}\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{api_base}}/reset-password"
-          }
-        },
-        {
-          "name": "Logout",
-          "request": { "method": "POST", "url": "{{api_base}}/logout" }
+    "name": "Auth",
+    "item": [
+      {
+        "name": "Register",
+        "request": {
+          "auth": { "type": "noauth" },
+          "method": "POST",
+          "header": [{ "key": "Accept", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"first_name\": \"{{new_user_first_name}}\",\n  \"last_name\": \"{{new_user_last_name}}\",\n  \"email\": \"{{new_user_email}}\",\n  \"phone\": \"+2348012345678\",\n  \"password\": \"{{new_user_password}}\",\n  \"password_confirmation\": \"{{new_user_password}}\"\n}",
+            "options": { "raw": { "language": "json" } }
+          },
+          "url": "{{api_base}}/register"
         }
-      ]
-    },
+      },
+
+      {
+        "name": "Verify Registration OTP",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "if (body.data && body.data.access_token) {",
+                "  pm.environment.set('auth_token', body.data.access_token);",
+                "}"
+              ]
+            }
+          }
+        ],
+        "request": {
+          "auth": { "type": "noauth" },
+          "method": "POST",
+          "header": [{ "key": "Accept", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"{{new_user_email}}\",\n  \"otp\": \"123456\"\n}",
+            "options": { "raw": { "language": "json" } }
+          },
+          "url": "{{api_base}}/auth/verify-registration-otp"
+        }
+      },
+
+      {
+        "name": "Resend Registration OTP",
+        "request": {
+          "auth": { "type": "noauth" },
+          "method": "POST",
+          "header": [{ "key": "Accept", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"{{new_user_email}}\"\n}",
+            "options": { "raw": { "language": "json" } }
+          },
+          "url": "{{api_base}}/auth/resend-registration-otp"
+        }
+      },
+
+      {
+        "name": "Login - Test User",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('Stores bearer token', function () {",
+                "  pm.expect(body.data.access_token).to.be.a('string');",
+                "  pm.environment.set('auth_token', body.data.access_token);",
+                "});"
+              ]
+            }
+          }
+        ],
+        "request": {
+          "auth": { "type": "noauth" },
+          "method": "POST",
+          "header": [{ "key": "Accept", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}",
+            "options": { "raw": { "language": "json" } }
+          },
+          "url": "{{api_base}}/login"
+        }
+      },
+
+      {
+        "name": "Me",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const body = pm.response.json();",
+                "pm.test('User includes status field', function () {",
+                "  pm.expect(body.data).to.have.property('status');",
+                "  pm.expect(body.data).to.have.property('email_verified_at');",
+                "});"
+              ]
+            }
+          }
+        ],
+        "request": {
+          "description": "Returns authenticated user with status and verification info.",
+          "method": "GET",
+          "url": "{{api_base}}/me"
+        }
+      },
+
+      {
+        "name": "Dashboard",
+        "request": {
+          "method": "GET",
+          "url": "{{api_base}}/dashboard"
+        }
+      },
+
+      {
+        "name": "Forgot Password",
+        "request": {
+          "auth": { "type": "noauth" },
+          "method": "POST",
+          "header": [{ "key": "Accept", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"{{test_email}}\"\n}",
+            "options": { "raw": { "language": "json" } }
+          },
+          "url": "{{api_base}}/auth/forgot-password"
+        }
+      },
+
+      {
+        "name": "Verify Reset OTP",
+        "request": {
+          "auth": { "type": "noauth" },
+          "method": "POST",
+          "header": [{ "key": "Accept", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"otp\": \"123456\"\n}",
+            "options": { "raw": { "language": "json" } }
+          },
+          "url": "{{api_base}}/auth/verify-reset-otp"
+        }
+      },
+
+      {
+        "name": "Reset Password",
+        "request": {
+          "auth": { "type": "noauth" },
+          "method": "POST",
+          "header": [{ "key": "Accept", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"reset_token\": \"{{reset_token}}\",\n  \"password\": \"{{test_password}}\",\n  \"password_confirmation\": \"{{test_password}}\"\n}",
+            "options": { "raw": { "language": "json" } }
+          },
+          "url": "{{api_base}}/auth/reset-password"
+        }
+      },
+
+      {
+        "name": "Logout",
+        "request": {
+          "method": "POST",
+          "url": "{{api_base}}/logout"
+        }
+      }
+    ]
+  },
     {
       "name": "Profile And KYC",
       "item": [

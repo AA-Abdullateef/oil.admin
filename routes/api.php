@@ -7,9 +7,12 @@ Route::prefix('v1')->group(function () {
 
     // ── Public ───────────────────────────────────────────────────
     Route::post('/register',        [V1\AuthController::class, 'register']);
+    Route::post('/verify-registration-otp', [V1\AuthController::class, 'verifyRegistrationOtp']);
+    Route::post('/resend-registration-otp', [V1\AuthController::class, 'resendRegistrationOtp']);
     Route::post('/login',           [V1\AuthController::class, 'login']);
     Route::post('/forgot-password', [V1\AuthController::class, 'forgotPassword']);
-    Route::post('/reset-password',  [V1\AuthController::class, 'resetPassword']);
+    Route::post('/verify-reset-otp', [V1\AuthController::class, 'verifyResetOtp']);
+    Route::post('/reset-password', [V1\AuthController::class, 'resetPassword']);
     Route::post('/contact',         [V1\ContactController::class, 'store']);
 
     // Public settings: platform info, payment details, and limits
