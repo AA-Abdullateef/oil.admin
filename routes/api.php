@@ -63,6 +63,7 @@ Route::prefix('v1')->group(function () {
             // Balances
             Route::get('/balances',              [V1\BalanceController::class, 'show']);
             Route::get('/balances/transactions', [V1\BalanceController::class, 'transactions']);
+            Route::get('/balances/earnings', [V1\BalanceController::class, 'earnings']);
 
             // Deposits
             Route::get('/deposits',           [V1\DepositController::class, 'index']);

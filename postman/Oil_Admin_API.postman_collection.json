@@ -445,6 +445,22 @@
           "request": { "method": "GET", "url": "{{api_base}}/balances/transactions" }
         },
         {
+          "name": "Balance Earnings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rows = (pm.response.json().data || []);",
+                  "if (rows[0]) pm.environment.set('earning_id', rows[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": { "method": "GET", "url": "{{api_base}}/balances/earnings" }
+        },
+        {
           "name": "Holdings",
           "request": { "method": "GET", "url": "{{api_base}}/holdings" }
         },
