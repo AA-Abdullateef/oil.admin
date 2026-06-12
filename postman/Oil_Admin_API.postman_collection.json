@@ -296,6 +296,23 @@
           }
         },
         {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"password\",\n  \"password\": \"NewPassword123!\",\n  \"password_confirmation\": \"NewPassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{api_base}}/change-password"
+          }
+        },
+        {
           "name": "KYC Status",
           "request": { "method": "GET", "url": "{{api_base}}/kyc/status" }
         },

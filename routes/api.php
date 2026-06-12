@@ -35,6 +35,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/profile', [V1\ProfileController::class, 'show']);
         Route::put('/profile', [V1\ProfileController::class, 'update']);
 
+        // Password change — allowed before KYC 
+        Route::put('/change-password', [V1\ChangePasswordController::class, 'update']);
+
         // KYC submission — must be accessible before verification
         Route::get('/kyc/status', [V1\KycController::class, 'status']);
         Route::post('/kyc/submit', [V1\KycController::class, 'submit']);
