@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             MethodSeeder::class,
             SettingsSeeder::class,
             TestDataSeeder::class,
+            EarningSeeder::class,
+            EarningScheduleSeeder::class,
         ]);
     }
 }

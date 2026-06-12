@@ -62,7 +62,7 @@ class BalanceController extends Controller
             ->earnings()
             ->with(['asset'])
             ->latest()
-            ->paginate(20);
+            ->paginate(1);
 
         return $this->success(
             EarningResource::collection($earnings),
