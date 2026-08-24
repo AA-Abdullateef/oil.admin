@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
         // Assets - read-only, no KYC required
         Route::get('/assets',          [V1\AssetController::class, 'index']);
         Route::get('/assets/{asset}',  [V1\AssetController::class, 'show']);
+        Route::get('/assets/currencies-crypto', [V1\AssetController::class, 'currenciesAndCrypto']);
         Route::get('/methods', [V1\MethodController::class, 'index']);
         Route::get('/methods/{method}/sub-methods', [V1\MethodController::class, 'subMethods']);
         Route::get('/sub-methods/{subMethod}', [V1\MethodController::class, 'showSubMethod']);

@@ -26,4 +26,17 @@ class AssetController extends Controller
 
         return $this->success(new AssetResource($asset), 'Asset retrieved.');
     }
+
+    public function currenciesAndCrypto(): JsonResponse
+    {
+        $assets = Asset::where('status', Asset::STATUS_ACTIVE)
+            ->whereIn('type', ['currency', 'crypto'])
+            ->orderBy('name')
+            ->get();
+
+        return $this->success(
+            AssetResource::collection($assets),
+            'Currencies and crypto assets retrieved.'
+        );
+    }
 }
