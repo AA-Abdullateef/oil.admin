@@ -128,4 +128,55 @@ class AssetPriceService
 
         return $price > 0 ? (string) $price : null;
     }
+
+    public function syncAssetBySymbol(string $symbol): array
+    {
+        $asset = Asset::where('symbol', strtoupper($symbol))->first();
+
+        if (! $asset) {
+            return [
+                'success' => false,
+                'message' => "Asset [{$symbol}] not found.",
+            ];
+        }
+
+        if ($asset->price_source !== 'alphavantage') {
+            return [
+                'success' => false,
+                'message' => "Asset [{$symbol}] is configured to use [{$asset->price_source}] instead of alphavantage.",
+            ];
+        }
+
+        if (! $this->hasApiCredentials('alphavantage')) {
+            return [
+                'success' => false,
+                'message' => 'Alpha Vantage API key is not configured.',
+            ];
+        }
+
+        $oldPrice = $asset->current_price;
+
+        $status = $this->syncAsset($asset);
+
+        if ($status !== 'synced') {
+            return [
+                'success' => false,
+                'message' => "Unable to fetch a valid Alpha Vantage price for {$asset->symbol}.",
+                'status' => $status,
+                'old_price' => $oldPrice,
+            ];
+        }
+
+        $asset->refresh();
+
+        return [
+            'success' => true,
+            'message' => "Price updated successfully for {$asset->symbol}.",
+            'symbol' => $asset->symbol,
+            'old_price' => $oldPrice,
+            'current_price' => $asset->current_price,
+            'price_source' => $asset->price_source,
+            'updated_at' => $asset->updated_at,
+        ];
+    }
 }

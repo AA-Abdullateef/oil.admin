@@ -22,6 +22,11 @@ return [
         'key' => env('FINNHUB_API_KEY'),
     ],
 
+    'coingecko' => [
+        'key' => env('COINGECKO_API_KEY'),
+        'require_key' => true,
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
+use App\Services\AssetPriceService;
 
 Route::get('/', fn () => redirect()->route('admin.dashboard'));
 Route::get('/login', fn () => redirect()->route('admin.login'))->name('login');
@@ -61,6 +62,12 @@ Route::prefix('admin')
         Route::resource('assets', Admin\AssetController::class)
             ->except(['show'])
             ->middleware('has_permission:manage_assets');
+        Route::get('/assets/sync-price/{symbol}', function (string $symbol,AssetPriceService $priceService) 
+        {
+            return response()->json(
+                $priceService->syncAssetBySymbol($symbol)
+            );
+        });
 
         // Roles & Permissions
         Route::resource('roles', Admin\RoleController::class)
