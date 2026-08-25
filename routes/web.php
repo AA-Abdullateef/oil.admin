@@ -62,10 +62,10 @@ Route::prefix('admin')
         Route::resource('assets', Admin\AssetController::class)
             ->except(['show'])
             ->middleware('has_permission:manage_assets');
-        Route::get('/assets/sync-price/{symbol}', function (string $symbol,AssetPriceService $priceService) 
+        Route::get('/assets/sync-price', function (AssetPriceService $priceService)
         {
             return response()->json(
-                $priceService->syncAssetBySymbol($symbol)
+                $priceService->syncAllAlphaVantageSymbols()
             );
         });
 

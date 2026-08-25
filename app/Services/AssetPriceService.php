@@ -129,6 +129,22 @@ class AssetPriceService
         return $price > 0 ? (string) $price : null;
     }
 
+    public function syncAllAlphaVantageSymbols(): array
+    {
+        $symbols = Asset::where('status', Asset::STATUS_ACTIVE)
+            ->where('price_source', 'alphavantage')
+            ->pluck('symbol')
+            ->toArray();
+
+        $results = [];
+
+        foreach ($symbols as $symbol) {
+            $results[] = $this->syncAssetBySymbol($symbol);
+        }
+
+        return $results;
+    }
+
     public function syncAssetBySymbol(string $symbol): array
     {
         $asset = Asset::where('symbol', strtoupper($symbol))->first();
